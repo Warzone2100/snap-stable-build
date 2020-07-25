@@ -24,3 +24,6 @@ jobs:
         cd snap-stable-build.git
         git push --mirror git+ssh://warzone-2100-project@git.launchpad.net/warzone2100-stable-snap
         echo "Done."
+    - name: Cleanup
+      run: |
+        rm ~/.ssh/id_rsa
