@@ -1,0 +1,26 @@
+name: Launchpad Deploy
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup Launchpad Deploy SSH Key
+      env:
+        LAUNCHPAD_DEPLOY_KEY: ${{ secrets.LAUNCHPAD_DEPLOY_KEY }}
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan git.launchpad.net >> ~/.ssh/known_hosts
+        ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+        echo "${LAUNCHPAD_DEPLOY_KEY}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-add ~/.ssh/id_rsa
+    - name: Mirror to Launchpad
+      run: |
+        git clone --mirror https://github.com/Warzone2100/snap-stable-build.git
+        cd snap-stable-build.git
+        git push --mirror git+ssh://warzone-2100-project@git.launchpad.net/warzone2100-stable-snap
+        echo "Done."
