@@ -1,11 +1,11 @@
-name: Launchpad Deploy
+name: Launchpad
 
 on:
   push:
     branches: [ master ]
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
     - name: Setup Launchpad Deploy SSH Key
