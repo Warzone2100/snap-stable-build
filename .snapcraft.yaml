@@ -4,6 +4,15 @@ adopt-info: warzone2100
 confinement: strict
 grade: stable
 base: core18
+# Enable LZO compression for the snap
+compression: lzo
+layout:
+  /usr/share/vulkan:
+    symlink: $SNAP/usr/share/vulkan
+  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libvulkan_intel.so:
+    symlink: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libvulkan_intel.so
+  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libvulkan_radeon.so:
+    symlink: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libvulkan_radeon.so
 plugs:
   wz2100-sequences:
     interface: content
@@ -56,13 +65,14 @@ parts:
       - shared-mime-info
       - libqt5gui5
       - libgdk-pixbuf2.0-0
-      - libqt5svg5 # for loading icon themes which are svg
+      - libqt5svg5 # for loading icon themes which are svg# for loading icon themes which are svg
       - qtwayland5
-      - try: [appmenu-qt5] # not available on core18
+      - try: [appmenu-qt5] # not available on core18# not available on core18
       - locales-all
       - libgtk2.0-0
   sdl:
-    source: https://www.libsdl.org/release/SDL2-2.0.12.tar.gz
+    source: https://www.libsdl.org/release/SDL2-2.0.14.tar.gz
+    source-checksum: sha512/ebc482585bd565bf3003fbcedd91058b2183e333b9ea566d2f386da0298ff970645d9d25c1aa4459c7c96e9ea839fd1c5f2da0242a56892865b2e456cdd027ee
     plugin: autotools
     configflags:
       - --prefix=/usr
@@ -75,6 +85,9 @@ parts:
       snapcraftctl build
       sed -i 's|"/usr"|"'"$SNAPCRAFT_STAGE/usr"'"|g' "$SNAPCRAFT_PART_INSTALL/usr/lib/cmake/SDL2/sdl2-config.cmake"
     build-packages:
+      - git
+      - libdbus-1-dev
+      - libudev-dev
       - fcitx-libs-dev
       - libegl1-mesa-dev
       - libgl1-mesa-dev
@@ -98,6 +111,8 @@ parts:
       - libxss-dev
       - libxxf86vm-dev
     stage-packages:
+      - libdbus-1-3
+      - libudev1
       - fcitx-libs
       - libdrm2
       - libegl1-mesa
@@ -128,6 +143,7 @@ parts:
     source: https://github.com/Warzone2100/warzone2100.git
     parse-info:
       # Parse this appdata/metainfo file for summary, description,
+      # and icon. Use the installed path relative to the Snap's root# Parse this appdata/metainfo file for summary, description,
       # and icon. Use the installed path relative to the Snap's root
       - usr/share/metainfo/warzone2100.appdata.xml
     override-pull: |
@@ -156,9 +172,15 @@ parts:
       WZ_DISTRIBUTOR="Snapcraft"
       EOENV
     override-build: |
+      echo "SNAPCRAFT_TARGET_ARCH=${SNAPCRAFT_TARGET_ARCH}"
+      echo "SNAPCRAFT_ARCH_TRIPLET=${SNAPCRAFT_ARCH_TRIPLET}"
+
+      # Install Vulkan SDK
+      . "${SNAPCRAFT_PART_SRC}/.ci/snap/install_vulkan_sdk.sh"
+
       if [ -f ".snapenv" ]; then set -a; source .snapenv; set +a; fi
       if [ -z "$WZ_DISTRIBUTOR" ]; then export WZ_DISTRIBUTOR="UNKNOWN"; fi
-      cmake -S "$SNAPCRAFT_PART_SRC" -B. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo -DWZ_ENABLE_WARNINGS:BOOL=ON -DWZ_DISTRIBUTOR:STRING="${WZ_DISTRIBUTOR}" -DWZ_OUTPUT_NAME_SUFFIX="${WZ_OUTPUT_NAME_SUFFIX}" -DWZ_NAME_SUFFIX="${WZ_NAME_SUFFIX}" -G"Ninja"
+      cmake -S "$SNAPCRAFT_PART_SRC" -B. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DWZ_ENABLE_WARNINGS:BOOL=ON -DWZ_DISTRIBUTOR:STRING="${WZ_DISTRIBUTOR}" -DWZ_OUTPUT_NAME_SUFFIX="${WZ_OUTPUT_NAME_SUFFIX}" -DWZ_NAME_SUFFIX="${WZ_NAME_SUFFIX}" -G"Ninja"
       cmake --build . -- -j$SNAPCRAFT_PARALLEL_BUILD_COUNT
       DESTDIR=$SNAPCRAFT_PART_INSTALL cmake --build . -- install
 
@@ -173,41 +195,40 @@ parts:
       - libfreetype6-dev
       - libfribidi-dev
       - libglc-dev
-      - libglew-dev
       - libharfbuzz-dev
       - libopenal-dev
       - libphysfs-dev
       - libpng-dev
       - libtheora-dev
       - libvorbis-dev
-      - qtbase5-dev
-      - qtscript5-dev
       - libcurl4-gnutls-dev
       - libgnutls28-dev
       - libsodium-dev
+      - libsqlite3-dev
       - ninja-build
       - unzip
+      - wget
       - zip
     stage-packages:
       - libfontconfig1
       - libfreetype6
       - libfribidi0
       - libglc0
-      - libglew2.0
       - libharfbuzz0b
       - libogg0
       - libopenal1
       - libphysfs1
       - libpng16-16
-      - libqt5opengl5
-      - libqt5script5
       - libtheora0
       - libvorbis0a
       - libvorbisenc2
       - libvorbisfile3
+      - libvulkan1
       - libcurl3-gnutls
       - libsodium23
+      - libsqlite3-0
       - libglu1-mesa
+      - mesa-vulkan-drivers
       - unzip
       - zip
     source-type: git
