@@ -65,9 +65,9 @@ parts:
       - shared-mime-info
       - libqt5gui5
       - libgdk-pixbuf2.0-0
-      - libqt5svg5 # for loading icon themes which are svg# for loading icon themes which are svg
+      - libqt5svg5 # for loading icon themes which are svg
       - qtwayland5
-      - try: [appmenu-qt5] # not available on core18# not available on core18
+      - try: [appmenu-qt5] # not available on core18
       - locales-all
       - libgtk2.0-0
   sdl:
@@ -143,7 +143,6 @@ parts:
     source: https://github.com/Warzone2100/warzone2100.git
     parse-info:
       # Parse this appdata/metainfo file for summary, description,
-      # and icon. Use the installed path relative to the Snap's root# Parse this appdata/metainfo file for summary, description,
       # and icon. Use the installed path relative to the Snap's root
       - usr/share/metainfo/warzone2100.appdata.xml
     override-pull: |
